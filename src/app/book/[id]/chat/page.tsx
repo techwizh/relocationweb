@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { BookingChat } from "@/components/booking-chat";
-import { getBookingAccessContext } from "@/lib/booking-access";
+import { fetchApi } from "@/lib/api-server";
 
 export default async function BookingChatPage({
   params,
@@ -9,19 +9,38 @@ export default async function BookingChatPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const access = await getBookingAccessContext(id);
 
-  if (!access.allowed) {
-    if (access.reason === "not_found") {
-      notFound();
-    }
+  const { ok, status, data } = await fetchApi<{
+    allowed: boolean;
+    reason?: "not_found" | "forbidden" | "payment_required";
+    role?: "CUSTOMER" | "DRIVER";
+    booking?: {
+      id: string;
+      contactName: string;
+      contactPhone: string;
+      pickupSubCounty: string;
+      pickupWard: string;
+      dropoffSubCounty: string;
+      dropoffWard: string;
+      notes: string | null;
+    };
+  }>(`/api/bookings/${id}/access`);
 
+  if (status === 404 || !ok || !data) {
+    notFound();
+  }
+
+  if (!data.allowed) {
     redirect(
-      `/book/access-denied?reason=${access.reason}&next=${encodeURIComponent(`/book/${id}/chat`)}`,
+      `/book/access-denied?reason=${data.reason}&next=${encodeURIComponent(`/book/${id}/chat`)}`,
     );
   }
 
-  const { booking, role } = access;
+  const { booking, role } = data;
+  if (!booking || !role) {
+    notFound();
+  }
+
   const chatRole = role === "DRIVER" ? "DRIVER" : "CUSTOMER";
   const senderName =
     chatRole === "DRIVER" ? "Assigned driver" : booking.contactName;

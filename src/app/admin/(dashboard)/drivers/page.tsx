@@ -1,6 +1,6 @@
 import { DriverReviewList } from "@/components/admin/driver-review-list";
-import { parsePhotoUrls, type DriverReviewRecord } from "@/lib/driver-display";
-import { prisma } from "@/lib/prisma";
+import { fetchApi } from "@/lib/api-server";
+import type { DriverReviewRecord } from "@/lib/driver-display";
 import type { DriverStatus } from "@prisma/client";
 
 const ALLOWED_STATUSES = new Set<DriverStatus>(["PENDING", "APPROVED", "REJECTED"]);
@@ -18,46 +18,11 @@ export default async function AdminDriversPage({
   const { status: statusParam } = await searchParams;
   const status = resolveStatus(statusParam);
 
-  const drivers = await prisma.driverProfile.findMany({
-    where: { status },
-    include: {
-      user: {
-        select: {
-          fullName: true,
-          email: true,
-          phone: true,
-        },
-      },
-      vehicle: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const { ok, data } = await fetchApi<{ drivers: DriverReviewRecord[] }>(
+    `/api/admin/drivers?status=${status}`,
+  );
 
-  const initialDrivers: DriverReviewRecord[] = drivers.map((driver) => ({
-    id: driver.id,
-    status: driver.status,
-    profilePhotoUrl: driver.profilePhotoUrl,
-    licenseNumber: driver.licenseNumber,
-    licensePhotoUrl: driver.licensePhotoUrl,
-    rejectionReason: driver.rejectionReason,
-    createdAt: driver.createdAt.toISOString(),
-    user: {
-      fullName: driver.user.fullName,
-      email: driver.user.email,
-      contactPhone: driver.user.phone,
-    },
-    vehicle: driver.vehicle
-      ? {
-          type: driver.vehicle.type,
-          make: driver.vehicle.make,
-          model: driver.vehicle.model,
-          year: driver.vehicle.year,
-          color: driver.vehicle.color,
-          plateNumber: driver.vehicle.plateNumber,
-          photoUrls: parsePhotoUrls(driver.vehicle.photoUrls),
-        }
-      : null,
-  }));
+  const initialDrivers = ok && data ? data.drivers : [];
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">

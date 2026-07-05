@@ -1,5 +1,7 @@
 import { createHash, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import { fetchApi } from "@/lib/api-server";
+import { isSplitDeploy } from "@/lib/api-url";
 import { prisma } from "@/lib/prisma";
 
 const SESSION_COOKIE = "relocate_driver_session";
@@ -68,6 +70,35 @@ export async function getDriverUser() {
   const session = await getDriverSession();
   if (!session) {
     return null;
+  }
+
+  if (isSplitDeploy()) {
+    const { ok, data } = await fetchApi<{
+      user: {
+        id: string;
+        fullName: string;
+        email: string;
+        role: "CUSTOMER" | "DRIVER" | "ADMIN";
+        driverProfile: {
+          id: string;
+          status: "PENDING" | "APPROVED" | "REJECTED";
+          rejectionReason: string | null;
+          isAvailable: boolean;
+          vehicle: {
+            type: string;
+            make: string;
+            model: string;
+            plateNumber: string;
+          } | null;
+        } | null;
+      };
+    }>("/api/driver/me");
+
+    if (!ok || !data?.user) {
+      return null;
+    }
+
+    return data.user;
   }
 
   return prisma.user.findUnique({

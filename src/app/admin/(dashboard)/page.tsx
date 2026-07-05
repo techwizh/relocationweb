@@ -1,22 +1,16 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
-
-function startOfToday(): Date {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  return date;
-}
+import { fetchApi } from "@/lib/api-server";
 
 export default async function AdminDashboardPage() {
-  const today = startOfToday();
+  const { ok, data } = await fetchApi<{
+    pendingDrivers: number;
+    todaysBookings: number;
+    liveVehicles: number;
+  }>("/api/admin/stats");
 
-  const [pendingDrivers, todaysBookings, liveVehicles] = await Promise.all([
-    prisma.driverProfile.count({ where: { status: "PENDING" } }),
-    prisma.booking.count({ where: { createdAt: { gte: today } } }),
-    prisma.driverProfile.count({
-      where: { status: "APPROVED", isAvailable: true },
-    }),
-  ]);
+  const pendingDrivers = ok && data ? data.pendingDrivers : 0;
+  const todaysBookings = ok && data ? data.todaysBookings : 0;
+  const liveVehicles = ok && data ? data.liveVehicles : 0;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">

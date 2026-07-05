@@ -1,27 +1,19 @@
 import { AccountBookings } from "@/components/account-bookings";
-import { BOOKING_STATUS_LABELS } from "@/lib/booking-display";
-import { getCustomerUser } from "@/lib/customer-auth";
-import { VEHICLE_TYPE_LABELS } from "@/lib/driver-display";
-import { prisma } from "@/lib/prisma";
+import { fetchApi } from "@/lib/api-server";
 
 export default async function AccountPage() {
-  const user = await getCustomerUser();
+  const { ok, data } = await fetchApi<{
+    user: {
+      fullName: string;
+      email: string;
+      phone: string | null;
+    };
+    bookings: Parameters<typeof AccountBookings>[0]["bookings"];
+  }>("/api/customer/bookings");
 
-  if (!user) {
+  if (!ok || !data) {
     return null;
   }
-
-  const bookings = await prisma.booking.findMany({
-    where: { customerId: user.id },
-    include: {
-      driver: {
-        include: {
-          user: { select: { fullName: true } },
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
@@ -32,22 +24,10 @@ export default async function AccountPage() {
 
       <div className="mt-8">
         <AccountBookings
-          fullName={user.fullName}
-          email={user.email}
-          phone={user.phone}
-          bookings={bookings.map((booking) => ({
-            id: booking.id,
-            status: booking.status,
-            statusLabel: BOOKING_STATUS_LABELS[booking.status],
-            contactName: booking.contactName,
-            pickupSummary: `${booking.pickupSubCounty}, ${booking.pickupWard}`,
-            dropoffSummary: `${booking.dropoffSubCounty}, ${booking.dropoffWard}`,
-            scheduledAt: booking.scheduledAt.toISOString(),
-            estimatedPrice: booking.estimatedPrice,
-            vehicleLabel: VEHICLE_TYPE_LABELS[booking.vehicleType],
-            driverName: booking.driver?.user.fullName ?? null,
-            createdAt: booking.createdAt.toISOString(),
-          }))}
+          fullName={data.user.fullName}
+          email={data.user.email}
+          phone={data.user.phone}
+          bookings={data.bookings}
         />
       </div>
     </div>

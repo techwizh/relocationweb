@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const apiUrl = process.env.API_URL?.replace(/\/$/, "");
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -8,6 +10,18 @@ const nextConfig: NextConfig = {
         hostname: "*.public.blob.vercel-storage.com",
       },
     ],
+  },
+  async rewrites() {
+    if (!apiUrl) {
+      return [];
+    }
+
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${apiUrl}/api/:path*`,
+      },
+    ];
   },
 };
 

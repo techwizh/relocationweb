@@ -82,9 +82,38 @@ Replace `relocationweb-api` in `MPESA_CALLBACK_URL` with your actual Render serv
 
 ## Step 2 — Frontend on Vercel (after Step 1 works)
 
-We will connect Vercel to proxy `/api/*` calls to your Render backend so the website works as one app.
+### 2A. Import project on Vercel
 
-Tell me when Step 1 is done (health check works) and we will do Step 2 together.
+1. Go to [vercel.com/new](https://vercel.com/new) → import **`techwizh/relocationweb`**.
+2. Framework: **Next.js** (auto-detected).
+
+### 2B. Environment variables on Vercel
+
+Add these (do **not** add `DATABASE_URL` on Vercel):
+
+```
+API_URL=https://YOUR-SERVICE.onrender.com
+ADMIN_USERNAME=techwiz
+ADMIN_PASSWORD=same-as-render
+ADMIN_SESSION_SECRET=same-as-render
+SKIP_MPESA_PAYMENT=true
+```
+
+`ADMIN_SESSION_SECRET` and `ADMIN_PASSWORD` must **match Render exactly** so login cookies work.
+
+You do not need M-Pesa keys on Vercel — payments run on Render.
+
+### 2C. Deploy
+
+Click **Deploy**. When done, open your Vercel URL (e.g. `https://relocationweb.vercel.app`).
+
+That URL is your **live website**. The home page, booking, and admin all load from Vercel; API calls are proxied to Render automatically.
+
+### 2D. After deploy
+
+1. Log in at `/admin/login` on your **Vercel URL**.
+2. Re-upload hero image in **Admin → Content**.
+3. Test a booking flow.
 
 ---
 

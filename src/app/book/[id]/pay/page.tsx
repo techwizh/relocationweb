@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { BookingPayment } from "@/components/booking-payment";
-import { isMpesaConfigured } from "@/lib/mpesa";
-import { prisma } from "@/lib/prisma";
+import { fetchApi } from "@/lib/api-server";
 import { VEHICLE_OPTIONS } from "@/lib/vehicles";
 
 const VEHICLE_LABELS = Object.fromEntries(
@@ -16,25 +15,40 @@ export default async function BookingPayPage({
 }) {
   const { id } = await params;
 
-  const booking = await prisma.booking.findUnique({
-    where: { id },
-    include: { payment: true },
-  });
+  const { ok, status, data } = await fetchApi<{
+    booking: {
+      id: string;
+      status: string;
+      contactName: string;
+      contactPhone: string;
+      pickupSubCounty: string;
+      pickupWard: string;
+      dropoffSubCounty: string;
+      dropoffWard: string;
+      vehicleType: string;
+      estimatedPrice: number;
+      scheduledAt: string;
+      paymentStatus: string | null;
+      mpesaReceipt: string | null;
+    };
+    mpesaConfigured: boolean;
+    isSandbox: boolean;
+  }>(`/api/bookings/${id}`);
 
-  if (!booking) {
+  if (status === 404 || !ok || !data) {
     notFound();
   }
 
-  if (booking.status === "PAID" || booking.payment?.status === "COMPLETED") {
+  const { booking } = data;
+
+  if (booking.status === "PAID" || booking.paymentStatus === "COMPLETED") {
     return (
       <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
         <div className="rounded-2xl border border-teal-200 bg-teal-50 p-6">
           <h1 className="text-2xl font-bold text-teal-900">Payment complete</h1>
           <p className="mt-2 text-teal-800">
             This booking is already paid
-            {booking.payment?.mpesaReceipt
-              ? ` (Receipt: ${booking.payment.mpesaReceipt})`
-              : "."}
+            {booking.mpesaReceipt ? ` (Receipt: ${booking.mpesaReceipt})` : "."}
           </p>
           <Link
             href={`/book/${booking.id}/chat`}
@@ -74,14 +88,14 @@ export default async function BookingPayPage({
           vehicleLabel={vehicleLabel}
           pickupSummary={`${booking.pickupSubCounty}, ${booking.pickupWard}`}
           dropoffSummary={`${booking.dropoffSubCounty}, ${booking.dropoffWard}`}
-          scheduledAt={booking.scheduledAt.toLocaleDateString("en-KE", {
+          scheduledAt={new Date(booking.scheduledAt).toLocaleDateString("en-KE", {
             weekday: "long",
             year: "numeric",
             month: "long",
             day: "numeric",
           })}
-          mpesaConfigured={isMpesaConfigured()}
-          isSandbox={process.env.MPESA_ENV !== "production"}
+          mpesaConfigured={data.mpesaConfigured}
+          isSandbox={data.isSandbox}
         />
       </div>
     </div>

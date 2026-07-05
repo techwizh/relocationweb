@@ -1,24 +1,30 @@
 import { DriverPortalDashboard } from "@/components/driver-portal-dashboard";
-import { toDriverJobRecord } from "@/lib/booking-display";
-import { getDriverUser } from "@/lib/driver-auth";
-import { prisma } from "@/lib/prisma";
+import { fetchApi } from "@/lib/api-server";
+import type { VehicleType } from "@prisma/client";
 
 export default async function DriverDashboardPage() {
-  const user = await getDriverUser();
+  const { ok, data } = await fetchApi<{
+    user: {
+      fullName: string;
+      email: string;
+      driverProfile: {
+        status: "PENDING" | "APPROVED" | "REJECTED";
+        rejectionReason: string | null;
+        isAvailable: boolean;
+        vehicle: {
+          type: string;
+          make: string;
+          model: string;
+          plateNumber: string;
+        } | null;
+      };
+    };
+    jobs: Parameters<typeof DriverPortalDashboard>[0]["jobs"];
+  }>("/api/driver/dashboard");
 
-  if (!user?.driverProfile) {
+  if (!ok || !data) {
     return null;
   }
-
-  const jobs = await prisma.booking.findMany({
-    where: {
-      driverId: user.driverProfile.id,
-      status: {
-        in: ["ASSIGNED", "EN_ROUTE", "LOADING", "IN_TRANSIT", "DELIVERED"],
-      },
-    },
-    orderBy: { scheduledAt: "asc" },
-  });
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
@@ -29,22 +35,20 @@ export default async function DriverDashboardPage() {
 
       <div className="mt-8">
         <DriverPortalDashboard
-          fullName={user.fullName}
-          email={user.email}
-          driverStatus={user.driverProfile.status}
-          rejectionReason={user.driverProfile.rejectionReason}
-          isAvailable={user.driverProfile.isAvailable}
+          fullName={data.user.fullName}
+          email={data.user.email}
+          driverStatus={data.user.driverProfile.status}
+          rejectionReason={data.user.driverProfile.rejectionReason}
+          isAvailable={data.user.driverProfile.isAvailable}
           vehicle={
-            user.driverProfile.vehicle
+            data.user.driverProfile.vehicle
               ? {
-                  type: user.driverProfile.vehicle.type,
-                  make: user.driverProfile.vehicle.make,
-                  model: user.driverProfile.vehicle.model,
-                  plateNumber: user.driverProfile.vehicle.plateNumber,
+                  ...data.user.driverProfile.vehicle,
+                  type: data.user.driverProfile.vehicle.type as VehicleType,
                 }
               : null
           }
-          jobs={jobs.map(toDriverJobRecord)}
+          jobs={data.jobs}
         />
       </div>
     </div>

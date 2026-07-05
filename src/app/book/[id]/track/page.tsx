@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { BookingTracker } from "@/components/booking-tracker";
-import { getBookingAccessContext } from "@/lib/booking-access";
+import { fetchApi } from "@/lib/api-server";
 
 export default async function BookingTrackPage({
   params,
@@ -9,19 +9,27 @@ export default async function BookingTrackPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const access = await getBookingAccessContext(id);
 
-  if (!access.allowed) {
-    if (access.reason === "not_found") {
-      notFound();
-    }
+  const { ok, status, data } = await fetchApi<{
+    allowed: boolean;
+    reason?: "not_found" | "forbidden" | "payment_required";
+    booking?: { id: string };
+  }>(`/api/bookings/${id}/access`);
 
+  if (status === 404 || !ok || !data) {
+    notFound();
+  }
+
+  if (!data.allowed) {
     redirect(
-      `/book/access-denied?reason=${access.reason}&next=${encodeURIComponent(`/book/${id}/track`)}`,
+      `/book/access-denied?reason=${data.reason}&next=${encodeURIComponent(`/book/${id}/track`)}`,
     );
   }
 
-  const { booking } = access;
+  const booking = data.booking;
+  if (!booking) {
+    notFound();
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">

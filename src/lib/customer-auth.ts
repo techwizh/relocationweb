@@ -1,5 +1,7 @@
 import { createHash, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import { fetchApi } from "@/lib/api-server";
+import { isSplitDeploy } from "@/lib/api-url";
 import { prisma } from "@/lib/prisma";
 
 const SESSION_COOKIE = "relocate_customer_session";
@@ -68,6 +70,24 @@ export async function getCustomerUser() {
   const session = await getCustomerSession();
   if (!session) {
     return null;
+  }
+
+  if (isSplitDeploy()) {
+    const { ok, data } = await fetchApi<{
+      user: {
+        id: string;
+        fullName: string;
+        email: string;
+        phone: string | null;
+        role: "CUSTOMER" | "DRIVER" | "ADMIN";
+      };
+    }>("/api/customer/me");
+
+    if (!ok || !data?.user) {
+      return null;
+    }
+
+    return data.user;
   }
 
   return prisma.user.findUnique({
