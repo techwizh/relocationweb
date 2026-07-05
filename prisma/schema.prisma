@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  DRIVER
+  ADMIN
+}
+
+enum DriverStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum VehicleType {
+  VAN
+  PICKUP
+  CANTER
+  LORRY
+}
+
+enum BookingStatus {
+  DRAFT
+  PENDING_PAYMENT
+  PAID
+  ASSIGNED
+  EN_ROUTE
+  LOADING
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+enum LocationMode {
+  AVAILABLE
+  ACTIVE_JOB
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum City {
+  MOMBASA
+  NAIROBI
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  phone     String?  @unique
+  password  String
+  fullName  String
+  role      UserRole @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  driverProfile DriverProfile?
+  bookings      Booking[]      @relation("CustomerBookings")
+  chatMessages  ChatMessage[]
+}
+
+model DriverProfile {
+  id               String       @id @default(cuid())
+  userId           String       @unique
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profilePhotoUrl  String?
+  licenseNumber    String
+  licensePhotoUrl  String?
+  status           DriverStatus @default(PENDING)
+  isAvailable      Boolean      @default(false)
+  rejectionReason  String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  vehicle          Vehicle?
+  assignedBookings Booking[]         @relation("DriverBookings")
+  locationUpdates  LocationUpdate[]
+}
+
+model Vehicle {
+  id           String      @id @default(cuid())
+  driverId     String      @unique
+  driver       DriverProfile @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  type         VehicleType
+  make         String
+  model        String
+  year         Int
+  color        String
+  plateNumber  String      @unique
+  photoUrls    String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Booking {
+  id                String        @id @default(cuid())
+  customerId        String?
+  customer          User?         @relation("CustomerBookings", fields: [customerId], references: [id])
+  driverId          String?
+  driver            DriverProfile? @relation("DriverBookings", fields: [driverId], references: [id])
+  vehicleType       VehicleType
+  city              City
+  pickupSubCounty   String
+  pickupWard        String
+  pickupLandmark    String?
+  dropoffSubCounty  String
+  dropoffWard       String
+  dropoffLandmark   String?
+  contactPhone      String
+  contactName       String
+  scheduledAt       DateTime
+  estimatedPrice    Float
+  finalPrice        Float?
+  status            BookingStatus @default(DRAFT)
+  notes             String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  payment           Payment?
+  locationUpdates   LocationUpdate[]
+  messages          ChatMessage[]
+}
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  bookingId  String
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  senderId   String?
+  sender     User?    @relation(fields: [senderId], references: [id], onDelete: SetNull)
+  senderRole UserRole
+  senderName String
+  body       String
+  createdAt  DateTime @default(now())
+
+  @@index([bookingId, createdAt])
+}
+
+model Payment {
+  id                 String        @id @default(cuid())
+  bookingId          String        @unique
+  booking            Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  amount             Float
+  phoneNumber        String
+  mpesaReceipt       String?
+  transactionId      String?
+  checkoutRequestId  String?       @unique
+  merchantRequestId  String?
+  resultDesc         String?
+  status             PaymentStatus @default(PENDING)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}
+
+model LocationUpdate {
+  id        String        @id @default(cuid())
+  driverId  String
+  driver    DriverProfile @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  bookingId String?
+  booking   Booking?      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  lat       Float
+  lng       Float
+  mode      LocationMode
+  createdAt DateTime      @default(now())
+
+  @@index([driverId, createdAt])
+  @@index([bookingId, createdAt])
+}
+
+model LandingPageContent {
+  id        String   @id @default("default")
+  content   String
+  updatedAt DateTime @updatedAt
+}
