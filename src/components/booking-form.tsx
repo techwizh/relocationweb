@@ -9,6 +9,9 @@ import { isValidKenyanPhone, normalizeKenyanPhone } from "@/lib/phone";
 import type { VehicleTypeId } from "@/lib/vehicles";
 import { VEHICLE_OPTIONS } from "@/lib/vehicles";
 
+const inputClassName =
+  "mt-2 w-full rounded-xl border border-teal-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200";
+
 export function BookingForm({
   skipPayment = false,
   isSandbox = true,
@@ -99,12 +102,9 @@ export function BookingForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-8 space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      className="motion-card space-y-8 overflow-hidden rounded-3xl border border-teal-100 bg-white p-6 shadow-lg shadow-teal-900/5 sm:p-8"
     >
-      <fieldset className="space-y-4 rounded-xl border border-teal-100 bg-teal-50/40 p-4">
-        <legend className="px-2 text-sm font-semibold text-teal-900">
-          Your contact details
-        </legend>
+      <FormStep number={1} title="Your details" icon="👤">
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-sm font-medium text-slate-700">
             Full name
@@ -113,7 +113,7 @@ export function BookingForm({
               value={contactName}
               onChange={(event) => setContactName(event.target.value)}
               required
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+              className={inputClassName}
             />
           </label>
           <label className="block text-sm font-medium text-slate-700">
@@ -124,118 +124,161 @@ export function BookingForm({
               onChange={(event) => setContactPhone(event.target.value)}
               placeholder="0712345678"
               required
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+              className={inputClassName}
             />
           </label>
         </div>
-        <p className="text-xs text-slate-500">
-          We use your phone for booking updates and M-Pesa payment. Drivers cannot
-          see your number in chat — communication stays on Relocate.
+        <p className="text-xs leading-5 text-slate-500">
+          We use your phone for booking updates and M-Pesa payment. Drivers cannot see
+          your number in chat.
           {!skipPayment && isSandbox ? (
-            <>
-              {" "}
-              Sandbox test number: <strong>254708374149</strong>.
-            </>
-          ) : null}
-          {!skipPayment && !isSandbox ? (
-            <> Use your Safaricom M-Pesa number.</>
+            <> Sandbox test: <strong>254708374149</strong>.</>
           ) : null}
         </p>
-      </fieldset>
+      </FormStep>
 
-      <label className="block text-sm font-medium text-slate-700">
-        City
-        <select
-          value={cityId}
-          onChange={(event) => handleCityChange(event.target.value as CityId)}
-          className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
-        >
-          {CITIES.map((city) => (
-            <option key={city.id} value={city.id}>
-              {city.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      <FormStep number={2} title="Locations" icon="📍">
+        <label className="block text-sm font-medium text-slate-700">
+          City
+          <select
+            value={cityId}
+            onChange={(event) => handleCityChange(event.target.value as CityId)}
+            className={inputClassName}
+          >
+            {CITIES.map((city) => (
+              <option key={city.id} value={city.id}>
+                {city.name}
+              </option>
+            ))}
+          </select>
+        </label>
 
-      <LocationFields
-        cityId={cityId}
-        prefix="pickup"
-        title="Moving from"
-        subCounty={pickupSubCounty}
-        ward={pickupWard}
-        landmark={pickupLandmark}
-        onSubCountyChange={setPickupSubCounty}
-        onWardChange={setPickupWard}
-        onLandmarkChange={setPickupLandmark}
-      />
-
-      <LocationFields
-        cityId={cityId}
-        prefix="dropoff"
-        title="Moving to"
-        subCounty={dropoffSubCounty}
-        ward={dropoffWard}
-        landmark={dropoffLandmark}
-        onSubCountyChange={setDropoffSubCounty}
-        onWardChange={setDropoffWard}
-        onLandmarkChange={setDropoffLandmark}
-      />
-
-      <label className="block text-sm font-medium text-slate-700">
-        Move date
-        <input
-          type="date"
-          value={scheduledAt}
-          onChange={(event) => setScheduledAt(event.target.value)}
-          required
-          className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+        <LocationFields
+          cityId={cityId}
+          prefix="pickup"
+          title="Moving from"
+          variant="pickup"
+          subCounty={pickupSubCounty}
+          ward={pickupWard}
+          landmark={pickupLandmark}
+          onSubCountyChange={setPickupSubCounty}
+          onWardChange={setPickupWard}
+          onLandmarkChange={setPickupLandmark}
         />
-      </label>
 
-      <label className="block text-sm font-medium text-slate-700">
-        Vehicle type
-        <select
-          value={vehicleType}
-          onChange={(event) =>
-            setVehicleType(event.target.value as VehicleTypeId)
-          }
-          className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
-        >
-          {VEHICLE_OPTIONS.map((vehicle) => (
-            <option key={vehicle.id} value={vehicle.id}>
-              {vehicle.name} — from KES {vehicle.basePriceKes.toLocaleString()}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="block text-sm font-medium text-slate-700">
-        Special instructions (optional)
-        <textarea
-          value={notes}
-          onChange={(event) => setNotes(event.target.value)}
-          rows={3}
-          placeholder="Large items, floor number, parking details, etc."
-          className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+        <LocationFields
+          cityId={cityId}
+          prefix="dropoff"
+          title="Moving to"
+          variant="dropoff"
+          subCounty={dropoffSubCounty}
+          ward={dropoffWard}
+          landmark={dropoffLandmark}
+          onSubCountyChange={setDropoffSubCounty}
+          onWardChange={setDropoffWard}
+          onLandmarkChange={setDropoffLandmark}
         />
-      </label>
+      </FormStep>
+
+      <FormStep number={3} title="Vehicle & date" icon="🚚">
+        <label className="block text-sm font-medium text-slate-700">
+          Move date
+          <input
+            type="date"
+            value={scheduledAt}
+            onChange={(event) => setScheduledAt(event.target.value)}
+            required
+            className={inputClassName}
+          />
+        </label>
+
+        <div>
+          <p className="text-sm font-medium text-slate-700">Choose your vehicle</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {VEHICLE_OPTIONS.map((vehicle) => {
+              const selected = vehicleType === vehicle.id;
+              return (
+                <button
+                  key={vehicle.id}
+                  type="button"
+                  onClick={() => setVehicleType(vehicle.id)}
+                  className={`rounded-2xl border-2 p-4 text-left transition ${
+                    selected
+                      ? `border-transparent bg-gradient-to-br ${vehicle.theme.gradient} text-white shadow-md`
+                      : "border-teal-100 bg-teal-50/50 hover:border-teal-300"
+                  }`}
+                >
+                  <span className="text-2xl">{vehicle.theme.emoji}</span>
+                  <p className={`mt-2 font-semibold ${selected ? "text-white" : "text-slate-900"}`}>
+                    {vehicle.name}
+                  </p>
+                  <p className={`mt-1 text-sm ${selected ? "text-white/90" : "text-teal-700"}`}>
+                    From KES {vehicle.basePriceKes.toLocaleString()}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </FormStep>
+
+      <FormStep number={4} title="Extra notes" icon="📝">
+        <label className="block text-sm font-medium text-slate-700">
+          Special instructions (optional)
+          <textarea
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            rows={3}
+            placeholder="Large items, floor number, parking details, etc."
+            className={inputClassName}
+          />
+        </label>
+      </FormStep>
 
       {error ? (
-        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+        <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
       ) : null}
 
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-full bg-teal-700 px-6 py-3 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-60"
+        className="motion-button w-full rounded-full bg-gradient-to-r from-teal-700 to-cyan-700 px-6 py-4 text-sm font-semibold text-white shadow-lg shadow-teal-900/20 hover:from-teal-800 hover:to-cyan-800 disabled:opacity-60"
       >
         {isSubmitting
-          ? "Saving..."
+          ? "Saving your booking..."
           : skipPayment
-            ? "Confirm booking"
-            : "Continue to M-Pesa payment"}
+            ? "Confirm booking →"
+            : "Continue to M-Pesa payment →"}
       </button>
     </form>
+  );
+}
+
+function FormStep({
+  number,
+  title,
+  icon,
+  children,
+}: {
+  number: number;
+  title: string;
+  icon: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50/80 to-white p-5">
+      <div className="mb-4 flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 text-sm font-bold text-white shadow-md">
+          {number}
+        </span>
+        <div>
+          <p className="flex items-center gap-2 text-lg font-semibold text-teal-900">
+            <span aria-hidden>{icon}</span>
+            {title}
+          </p>
+        </div>
+      </div>
+      <div className="space-y-4">{children}</div>
+    </section>
   );
 }

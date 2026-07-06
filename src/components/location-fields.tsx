@@ -13,7 +13,11 @@ type LocationFieldsProps = {
   onWardChange: (value: string) => void;
   onLandmarkChange: (value: string) => void;
   title: string;
+  variant?: "pickup" | "dropoff";
 };
+
+const inputClassName =
+  "mt-2 w-full rounded-xl border border-teal-200 bg-white px-4 py-3 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200";
 
 export function LocationFields({
   cityId,
@@ -25,12 +29,18 @@ export function LocationFields({
   onWardChange,
   onLandmarkChange,
   title,
+  variant = prefix,
 }: LocationFieldsProps) {
   const subCounties = getSubCounties(cityId);
+  const borderClass =
+    variant === "pickup"
+      ? "border-teal-200 bg-teal-50/30"
+      : "border-cyan-200 bg-cyan-50/30";
+  const legendClass = variant === "pickup" ? "text-teal-900" : "text-cyan-900";
 
   return (
-    <fieldset className="space-y-4 rounded-xl border border-slate-200 p-4">
-      <legend className="px-2 text-sm font-semibold text-slate-800">{title}</legend>
+    <fieldset className={`space-y-4 rounded-2xl border p-4 ${borderClass}`}>
+      <legend className={`px-2 text-sm font-semibold ${legendClass}`}>{title}</legend>
 
       <label className="block text-sm font-medium text-slate-700">
         Sub-county
@@ -39,7 +49,7 @@ export function LocationFields({
           value={subCounty}
           onChange={(event) => onSubCountyChange(event.target.value)}
           required
-          className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+          className={inputClassName}
         >
           <option value="">Select sub-county</option>
           {subCounties.map((name) => (
@@ -59,7 +69,7 @@ export function LocationFields({
           onChange={(event) => onWardChange(event.target.value)}
           placeholder="e.g. Kongowea, Bamburi, or your ward name"
           required
-          className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+          className={inputClassName}
         />
       </label>
 
@@ -71,7 +81,7 @@ export function LocationFields({
           value={landmark}
           onChange={(event) => onLandmarkChange(event.target.value)}
           placeholder="Building, estate, or nearby landmark"
-          className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+          className={inputClassName}
         />
       </label>
     </fieldset>
