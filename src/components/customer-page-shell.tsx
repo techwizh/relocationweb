@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { MotionFadeUp, MotionGlowOrb } from "@/components/motion-section";
@@ -9,6 +10,8 @@ type CustomerPageShellProps = {
   backHref?: string;
   backLabel?: string;
   badges?: Array<{ icon: string; text: string }>;
+  heroImageSrc?: string;
+  heroImageAlt?: string;
   children: ReactNode;
   maxWidth?: "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
 };
@@ -29,6 +32,8 @@ export function CustomerPageShell({
   backHref,
   backLabel = "Back",
   badges,
+  heroImageSrc,
+  heroImageAlt = "",
   children,
   maxWidth = "3xl",
 }: CustomerPageShellProps) {
@@ -37,8 +42,29 @@ export function CustomerPageShell({
       <MotionGlowOrb className="left-[-5rem] top-0 h-72 w-72 bg-teal-300/30" />
       <MotionGlowOrb className="right-[-4rem] top-32 h-64 w-64 bg-cyan-300/25" />
 
-      <section className="relative border-b border-teal-100 bg-gradient-to-br from-teal-800 to-teal-950 px-4 py-12 text-white sm:px-6 sm:py-14">
-        <div className={`mx-auto ${maxWidthClass[maxWidth]}`}>
+      <section
+        className={`relative overflow-hidden border-b border-teal-100 px-4 py-12 text-white sm:px-6 sm:py-16 ${
+          heroImageSrc ? "min-h-[22rem] sm:min-h-[26rem]" : "bg-gradient-to-br from-teal-800 to-teal-950 sm:py-14"
+        }`}
+      >
+        {heroImageSrc ? (
+          <>
+            <Image
+              src={heroImageSrc}
+              alt={heroImageAlt}
+              fill
+              priority
+              className="object-cover object-center"
+              sizes="100vw"
+            />
+            <div
+              className="absolute inset-0 bg-gradient-to-br from-teal-900/88 via-teal-900/82 to-teal-950/90"
+              aria-hidden
+            />
+          </>
+        ) : null}
+
+        <div className={`relative z-10 mx-auto ${maxWidthClass[maxWidth]}`}>
           <MotionFadeUp>
             {backHref ? (
               <Link

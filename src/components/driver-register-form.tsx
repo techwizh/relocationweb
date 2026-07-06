@@ -5,6 +5,9 @@ import { useState } from "react";
 import type { VehicleTypeId } from "@/lib/vehicles";
 import { VEHICLE_OPTIONS } from "@/lib/vehicles";
 
+const inputClassName =
+  "mt-2 w-full rounded-xl border border-teal-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200";
+
 export function DriverRegisterForm() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
@@ -86,18 +89,15 @@ export function DriverRegisterForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-8 space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      className="motion-card space-y-6 rounded-3xl border border-teal-100 bg-gradient-to-br from-teal-50/80 to-white p-6 shadow-lg shadow-teal-900/5 sm:p-8"
     >
-      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+      <div className="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50/50 px-4 py-3 text-sm text-amber-900">
         Drivers do not enter a phone number here. Relocate admin assigns and
         manages driver contact details. Customers never see your number — all
         communication stays in the in-app chat.
       </div>
 
-      <fieldset className="space-y-4 rounded-xl border border-slate-200 p-4">
-        <legend className="px-2 text-sm font-semibold text-slate-800">
-          Account details
-        </legend>
+      <FormSection number={1} title="Account details" icon="👤">
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-sm font-medium text-slate-700">
             Full name
@@ -106,7 +106,7 @@ export function DriverRegisterForm() {
               value={fullName}
               onChange={(event) => setFullName(event.target.value)}
               required
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+              className={inputClassName}
             />
           </label>
           <label className="block text-sm font-medium text-slate-700">
@@ -117,7 +117,7 @@ export function DriverRegisterForm() {
               onChange={(event) => setEmail(event.target.value)}
               required
               placeholder="you@example.com"
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+              className={inputClassName}
             />
           </label>
         </div>
@@ -129,7 +129,7 @@ export function DriverRegisterForm() {
             onChange={(event) => setPassword(event.target.value)}
             required
             minLength={8}
-            className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+            className={inputClassName}
           />
         </label>
         <label className="block text-sm font-medium text-slate-700">
@@ -139,15 +139,12 @@ export function DriverRegisterForm() {
             accept="image/*"
             required
             onChange={(event) => setProfilePhoto(event.target.files?.[0] ?? null)}
-            className="mt-2 block w-full text-sm text-slate-600"
+            className="mt-2 block w-full rounded-xl border border-teal-200 bg-white px-3 py-2 text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-teal-100 file:px-3 file:py-1 file:text-sm file:font-medium file:text-teal-800"
           />
         </label>
-      </fieldset>
+      </FormSection>
 
-      <fieldset className="space-y-4 rounded-xl border border-slate-200 p-4">
-        <legend className="px-2 text-sm font-semibold text-slate-800">
-          Driving license
-        </legend>
+      <FormSection number={2} title="Driving license" icon="🪪">
         <label className="block text-sm font-medium text-slate-700">
           License number
           <input
@@ -155,7 +152,7 @@ export function DriverRegisterForm() {
             value={licenseNumber}
             onChange={(event) => setLicenseNumber(event.target.value)}
             required
-            className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+            className={inputClassName}
           />
         </label>
         <label className="block text-sm font-medium text-slate-700">
@@ -165,21 +162,18 @@ export function DriverRegisterForm() {
             accept="image/*"
             required
             onChange={(event) => setLicensePhoto(event.target.files?.[0] ?? null)}
-            className="mt-2 block w-full text-sm text-slate-600"
+            className="mt-2 block w-full rounded-xl border border-teal-200 bg-white px-3 py-2 text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-teal-100 file:px-3 file:py-1 file:text-sm file:font-medium file:text-teal-800"
           />
         </label>
-      </fieldset>
+      </FormSection>
 
-      <fieldset className="space-y-4 rounded-xl border border-slate-200 p-4">
-        <legend className="px-2 text-sm font-semibold text-slate-800">
-          Vehicle details
-        </legend>
+      <FormSection number={3} title="Vehicle details" icon="🚚">
         <label className="block text-sm font-medium text-slate-700">
           Vehicle type
           <select
             value={vehicleType}
             onChange={(event) => setVehicleType(event.target.value as VehicleTypeId)}
-            className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+            className={inputClassName}
           >
             {VEHICLE_OPTIONS.map((vehicle) => (
               <option key={vehicle.id} value={vehicle.id}>
@@ -197,7 +191,7 @@ export function DriverRegisterForm() {
               onChange={(event) => setMake(event.target.value)}
               required
               placeholder="e.g. Toyota"
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+              className={inputClassName}
             />
           </label>
           <label className="block text-sm font-medium text-slate-700">
@@ -208,7 +202,7 @@ export function DriverRegisterForm() {
               onChange={(event) => setModel(event.target.value)}
               required
               placeholder="e.g. Hilux"
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+              className={inputClassName}
             />
           </label>
         </div>
@@ -222,7 +216,7 @@ export function DriverRegisterForm() {
               required
               min={1990}
               max={new Date().getFullYear() + 1}
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+              className={inputClassName}
             />
           </label>
           <label className="block text-sm font-medium text-slate-700">
@@ -233,7 +227,7 @@ export function DriverRegisterForm() {
               onChange={(event) => setColor(event.target.value)}
               required
               placeholder="e.g. White"
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+              className={inputClassName}
             />
           </label>
         </div>
@@ -245,7 +239,7 @@ export function DriverRegisterForm() {
             onChange={(event) => setPlateNumber(event.target.value)}
             required
             placeholder="e.g. KAA 123A"
-            className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+            className={inputClassName}
           />
         </label>
         <label className="block text-sm font-medium text-slate-700">
@@ -256,10 +250,10 @@ export function DriverRegisterForm() {
             multiple
             required
             onChange={(event) => setVehiclePhotos(event.target.files)}
-            className="mt-2 block w-full text-sm text-slate-600"
+            className="mt-2 block w-full rounded-xl border border-teal-200 bg-white px-3 py-2 text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-teal-100 file:px-3 file:py-1 file:text-sm file:font-medium file:text-teal-800"
           />
         </label>
-      </fieldset>
+      </FormSection>
 
       {error ? (
         <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
@@ -268,10 +262,37 @@ export function DriverRegisterForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-full bg-teal-700 px-6 py-3 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-60"
+        className="motion-button w-full rounded-full bg-gradient-to-r from-teal-700 to-cyan-700 px-6 py-4 text-sm font-semibold text-white shadow-lg shadow-teal-900/20 hover:from-teal-800 hover:to-cyan-800 disabled:opacity-60"
       >
-        {isSubmitting ? "Submitting..." : "Submit for approval"}
+        {isSubmitting ? "Submitting..." : "Submit for approval →"}
       </button>
     </form>
+  );
+}
+
+function FormSection({
+  number,
+  title,
+  icon,
+  children,
+}: {
+  number: number;
+  title: string;
+  icon: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-teal-100 bg-white/70 p-5">
+      <div className="mb-4 flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 text-sm font-bold text-white shadow-md">
+          {number}
+        </span>
+        <p className="flex items-center gap-2 text-lg font-semibold text-teal-900">
+          <span aria-hidden>{icon}</span>
+          {title}
+        </p>
+      </div>
+      <div className="space-y-4">{children}</div>
+    </section>
   );
 }

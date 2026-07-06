@@ -1,16 +1,25 @@
 import { DriverRegisterForm } from "@/components/driver-register-form";
+import { CustomerPageShell } from "@/components/customer-page-shell";
+import { MotionFadeUp } from "@/components/motion-section";
 
 export default function DriverRegisterPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-bold text-slate-900">Driver registration</h1>
-      <p className="mt-3 text-slate-600">
-        Upload your profile photo and vehicle photos for admin approval. Phone
-        numbers are not collected from drivers — Relocate manages contact details
-        and keeps customer communication inside the app.
-      </p>
-
-      <DriverRegisterForm />
-    </div>
+    <CustomerPageShell
+      eyebrow="Join our fleet"
+      title="Driver registration"
+      description="Upload your profile photo and vehicle photos for admin approval. Relocate manages contact details and keeps customer communication inside the app."
+      heroImageSrc="/images/driver-register-vehicle.png"
+      heroImageAlt="Relocation vehicles ready for moving jobs"
+      badges={[
+        { icon: "🚛", text: "Earn on your schedule" },
+        { icon: "✅", text: "Admin verified" },
+        { icon: "💬", text: "In-app chat only" },
+      ]}
+      maxWidth="3xl"
+    >
+      <MotionFadeUp delay={250}>
+        <DriverRegisterForm />
+      </MotionFadeUp>
+    </CustomerPageShell>
   );
 }
