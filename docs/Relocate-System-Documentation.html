@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Relocate — Full System Documentation</title>
+  <style>
+    @page { margin: 18mm 16mm; size: A4; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.5;
+      color: #1e293b;
+      max-width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    h1 { font-size: 22pt; color: #0f766e; border-bottom: 3px solid #14b8a6; padding-bottom: 8px; margin-top: 0; page-break-after: avoid; }
+    h2 { font-size: 14pt; color: #0f766e; margin-top: 22px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; page-break-after: avoid; }
+    h3 { font-size: 11.5pt; color: #334155; margin-top: 16px; page-break-after: avoid; }
+    p, li { margin: 6px 0; }
+    li { margin-left: 18px; }
+    code, pre { font-family: Consolas, monospace; font-size: 9pt; }
+    code { background: #f1f5f9; padding: 1px 4px; border-radius: 3px; }
+    pre { background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 6px; white-space: pre-wrap; overflow-wrap: anywhere; page-break-inside: avoid; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 9.5pt; page-break-inside: avoid; }
+    th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; vertical-align: top; }
+    th { background: #f0fdfa; color: #115e59; font-weight: 600; }
+    tr:nth-child(even) td { background: #f8fafc; }
+    hr { border: none; border-top: 1px solid #e2e8f0; margin: 20px 0; }
+    a { color: #0d9488; text-decoration: none; }
+    .cover { text-align: center; padding: 40px 0 30px; page-break-after: always; }
+    .cover h1 { border: none; font-size: 28pt; }
+    .cover p { font-size: 12pt; color: #64748b; }
+    .footer-note { margin-top: 30px; font-size: 9pt; color: #64748b; text-align: center; }
+    .check { padding-left: 4px; }
+  </style>
+</head>
+<body>
+  <div class="cover">
+    <h1>Relocate</h1>
+    <p><strong>Full System Documentation</strong></p>
+    <p>Moving &amp; relocation platform — Mombasa &amp; Nairobi, Kenya</p>
+    <p>Version 0.1.0 · July 2026</p>
+    <p>techwizh/relocationweb</p>
+  </div>
+  <h1>Relocate — Full System Documentation</h1>
+
+<p>Book moving vehicles in <strong>Mombasa</strong> and <strong>Nairobi</strong>, Kenya. Own-fleet model with M-Pesa payments, in-app chat, live GPS tracking, driver portal, and admin dashboard.</p>
+
+<hr />
+
+<h2>Table of contents</h2>
+
+<li class="ol"><a href="#live-urls">Live URLs</a></li>
+<li class="ol"><a href="#architecture">Architecture</a></li>
+<li class="ol"><a href="#tech-stack">Tech stack</a></li>
+<li class="ol"><a href="#user-roles--flows">User roles &amp; flows</a></li>
+<li class="ol"><a href="#pages--routes">Pages &amp; routes</a></li>
+<li class="ol"><a href="#api-reference">API reference</a></li>
+<li class="ol"><a href="#database-schema">Database schema</a></li>
+<li class="ol"><a href="#authentication--sessions">Authentication &amp; sessions</a></li>
+<li class="ol"><a href="#m-pesa-payments">M-Pesa payments</a></li>
+<li class="ol"><a href="#file-uploads">File uploads</a></li>
+<li class="ol"><a href="#environment-variables">Environment variables</a></li>
+<li class="ol"><a href="#deployment">Deployment</a></li>
+<li class="ol"><a href="#local-development">Local development</a></li>
+<li class="ol"><a href="#project-structure">Project structure</a></li>
+<li class="ol"><a href="#troubleshooting">Troubleshooting</a></li>
+
+<hr />
+
+<h2>Live URLs</h2>
+
+<table>
+<thead><tr><th>Service</th><th>URL</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><strong>Website (public)</strong></td><td>Your Vercel URL (e.g. <code>https://relocationweb.vercel.app</code>)</td><td>Customers, drivers, admin UI</td></tr>
+<tr><td><strong>Backend API</strong></td><td><code>https://relocationweb-api.onrender.com</code></td><td>API, database, M-Pesa, uploads</td></tr>
+<tr><td><strong>Health check</strong></td><td><code>https://relocationweb-api.onrender.com/api/health</code></td><td>Verify backend is running</td></tr>
+<tr><td><strong>Source code</strong></td><td><code>https://github.com/techwizh/relocationweb</code></td><td>Git repository (not the live site)</td></tr>
+</tbody></table>
+
+<p><strong>Important:</strong> GitHub shows the README and code. The live website is always the <strong>Vercel URL</strong>.</p>
+
+<hr />
+
+<h2>Architecture</h2>
+
+<p>Production uses a <strong>split deploy</strong>:</p>
+
+<pre><code>
+┌─────────────────────────────────────────────────────────────┐
+│  VERCEL (Frontend)                                          │
+│  • Next.js pages (landing, book, admin UI, etc.)            │
+│  • Proxies /api/* → Render via API_URL rewrite              │
+│  • No database connection                                   │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ HTTPS (API calls + cookies)
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│  RENDER (Backend)                                           │
+│  • Next.js API routes (/api/*)                              │
+│  • Prisma + PostgreSQL (Neon)                               │
+│  • M-Pesa STK Push + callback                               │
+│  • Image uploads (local or Vercel Blob token)               │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│  NEON (PostgreSQL)                                          │
+│  • Users, bookings, payments, chat, GPS, CMS content      │
+└─────────────────────────────────────────────────────────────┘
+</code></pre>
+
+<p><strong>Local development</strong> runs everything on one machine (<code>localhost:3000</code>) with no <code>API_URL</code> set.</p>
+
+<hr />
+
+<h2>Tech stack</h2>
+
+<table>
+<thead><tr><th>Layer</th><th>Technology</th></tr></thead><tbody>
+<tr><td>Framework</td><td>Next.js 16 (App Router)</td></tr>
+<tr><td>Language</td><td>TypeScript</td></tr>
+<tr><td>Styling</td><td>Tailwind CSS 4</td></tr>
+<tr><td>Database</td><td>PostgreSQL via Prisma 6</td></tr>
+<tr><td>Maps</td><td>Leaflet / react-leaflet</td></tr>
+<tr><td>Payments</td><td>Safaricom Daraja M-Pesa (STK Push)</td></tr>
+<tr><td>Frontend host</td><td>Vercel</td></tr>
+<tr><td>Backend host</td><td>Render (free tier)</td></tr>
+<tr><td>Database host</td><td>Neon (free tier)</td></tr>
+<tr><td>Image storage</td><td><code>public/uploads/</code> locally; Vercel Blob in production (optional)</td></tr>
+</tbody></table>
+
+<hr />
+
+<h2>User roles &amp; flows</h2>
+
+<h3>Customer</h3>
+
+<li class="ol">Visit landing page → <strong>Book a move</strong></li>
+<li class="ol">Choose city, sub-county, ward, vehicle, date, contact details</li>
+<li class="ol">Pay with M-Pesa (or skip if <code>SKIP_MPESA_PAYMENT=true</code>)</li>
+<li class="ol">Chat with driver, track live GPS</li>
+<li class="ol">Optional: register at <code>/register</code> → <strong>My account</strong> lists all bookings</li>
+
+<h3>Driver</h3>
+
+<li class="ol">Register at <code>/driver/register</code> (photos, license, vehicle)</li>
+<li class="ol">Wait for admin approval</li>
+<li class="ol">Log in at <code>/login</code> (Driver tab)</li>
+<li class="ol"><strong>Driver portal</strong>: toggle availability, accept assigned jobs, update status, share GPS, chat</li>
+
+<h3>Admin</h3>
+
+<li class="ol">Log in at <code>/admin/login</code></li>
+<li class="ol"><strong>Dashboard</strong> — stats overview</li>
+<li class="ol"><strong>Content</strong> — edit landing page text and upload hero/gallery images</li>
+<li class="ol"><strong>Drivers</strong> — approve/reject applications, set internal contact phone</li>
+<li class="ol"><strong>Bookings</strong> — assign paid bookings to approved drivers</li>
+<li class="ol"><strong>Fleet</strong> — live map of driver GPS</li>
+
+<hr />
+
+<h2>Pages &amp; routes</h2>
+
+<h3>Public</h3>
+
+<table>
+<thead><tr><th>Path</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>/</code></td><td>Landing page (CMS-driven)</td></tr>
+<tr><td><code>/book</code></td><td>New booking form</td></tr>
+<tr><td><code>/book/[id]/pay</code></td><td>M-Pesa payment</td></tr>
+<tr><td><code>/book/[id]/chat</code></td><td>Booking chat</td></tr>
+<tr><td><code>/book/[id]/track</code></td><td>Live driver map</td></tr>
+<tr><td><code>/book/access-denied</code></td><td>Shown when booking access fails</td></tr>
+<tr><td><code>/login</code></td><td>Customer or driver login</td></tr>
+<tr><td><code>/register</code></td><td>Customer registration</td></tr>
+<tr><td><code>/driver/register</code></td><td>Driver application</td></tr>
+<tr><td><code>/driver/register/success</code></td><td>Post-registration confirmation</td></tr>
+</tbody></table>
+
+<h3>Customer (requires login)</h3>
+
+<table>
+<thead><tr><th>Path</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>/account</code></td><td>My bookings, chat/track links</td></tr>
+</tbody></table>
+
+<h3>Driver (requires login + approved profile)</h3>
+
+<table>
+<thead><tr><th>Path</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>/driver/dashboard</code></td><td>Jobs, availability, GPS sharing</td></tr>
+</tbody></table>
+
+<h3>Admin (requires admin session)</h3>
+
+<table>
+<thead><tr><th>Path</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>/admin</code></td><td>Dashboard stats</td></tr>
+<tr><td><code>/admin/content</code></td><td>Landing page CMS</td></tr>
+<tr><td><code>/admin/drivers</code></td><td>Review driver applications</td></tr>
+<tr><td><code>/admin/bookings</code></td><td>Assign drivers to bookings</td></tr>
+<tr><td><code>/admin/fleet</code></td><td>Live fleet map</td></tr>
+<tr><td><code>/admin/login</code></td><td>Admin login</td></tr>
+</tbody></table>
+
+<hr />
+
+<h2>API reference</h2>
+
+<p>All API routes live on <strong>Render</strong> in production. Vercel proxies <code>/api/*</code> to Render.</p>
+
+<h3>Health</h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead><tbody>
+<tr><td>GET</td><td><code>/api/health</code></td><td>None</td><td>Service health check</td></tr>
+</tbody></table>
+
+<h3>Landing &amp; CMS</h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead><tbody>
+<tr><td>GET</td><td><code>/api/landing</code></td><td>None</td><td>Public landing page content</td></tr>
+<tr><td>GET</td><td><code>/api/admin/content</code></td><td>Admin</td><td>Get CMS content</td></tr>
+<tr><td>PUT</td><td><code>/api/admin/content</code></td><td>Admin</td><td>Save CMS content</td></tr>
+<tr><td>POST</td><td><code>/api/admin/upload</code></td><td>Admin</td><td>Upload image</td></tr>
+</tbody></table>
+
+<h3>Bookings</h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead><tbody>
+<tr><td>POST</td><td><code>/api/bookings</code></td><td>Optional customer</td><td>Create booking</td></tr>
+<tr><td>GET</td><td><code>/api/bookings/[id]</code></td><td>Guest/customer cookie</td><td>Booking details for pay page</td></tr>
+<tr><td>GET</td><td><code>/api/bookings/[id]/access</code></td><td>Booking access</td><td>Access check for chat/track</td></tr>
+<tr><td>POST</td><td><code>/api/bookings/[id]/pay</code></td><td>Booking access</td><td>Initiate M-Pesa STK Push</td></tr>
+<tr><td>GET</td><td><code>/api/bookings/[id]/payment-status</code></td><td>Booking access</td><td>Poll payment status</td></tr>
+<tr><td>GET</td><td><code>/api/bookings/[id]/messages</code></td><td>Booking access</td><td>List chat messages</td></tr>
+<tr><td>POST</td><td><code>/api/bookings/[id]/messages</code></td><td>Booking access</td><td>Send chat message</td></tr>
+<tr><td>GET</td><td><code>/api/bookings/[id]/location</code></td><td>Booking access</td><td>Latest driver GPS for booking</td></tr>
+</tbody></table>
+
+<h3>M-Pesa</h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead><tbody>
+<tr><td>POST</td><td><code>/api/mpesa/callback</code></td><td>Safaricom</td><td>Payment webhook (Render URL only)</td></tr>
+</tbody></table>
+
+<h3>Customer auth</h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead><tbody>
+<tr><td>POST</td><td><code>/api/customer/register</code></td><td>None</td><td>Register</td></tr>
+<tr><td>POST</td><td><code>/api/customer/login</code></td><td>None</td><td>Login</td></tr>
+<tr><td>POST</td><td><code>/api/customer/logout</code></td><td>Customer</td><td>Logout</td></tr>
+<tr><td>GET</td><td><code>/api/customer/me</code></td><td>Customer</td><td>Current user</td></tr>
+<tr><td>GET</td><td><code>/api/customer/bookings</code></td><td>Customer</td><td>My bookings list</td></tr>
+</tbody></table>
+
+<h3>Driver auth &amp; portal</h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead><tbody>
+<tr><td>POST</td><td><code>/api/drivers/register</code></td><td>None</td><td>Driver application</td></tr>
+<tr><td>POST</td><td><code>/api/driver/login</code></td><td>None</td><td>Login</td></tr>
+<tr><td>POST</td><td><code>/api/driver/logout</code></td><td>Driver</td><td>Logout</td></tr>
+<tr><td>GET</td><td><code>/api/driver/me</code></td><td>Driver</td><td>Current driver user</td></tr>
+<tr><td>GET</td><td><code>/api/driver/dashboard</code></td><td>Driver</td><td>Jobs + profile for portal</td></tr>
+<tr><td>POST</td><td><code>/api/driver/availability</code></td><td>Driver</td><td>Toggle available/offline</td></tr>
+<tr><td>POST</td><td><code>/api/driver/location</code></td><td>Driver</td><td>Submit GPS coordinates</td></tr>
+<tr><td>POST</td><td><code>/api/driver/jobs/[bookingId]/status</code></td><td>Driver</td><td>Advance job status</td></tr>
+</tbody></table>
+
+<h3>Admin</h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead><tbody>
+<tr><td>POST</td><td><code>/api/admin/login</code></td><td>None</td><td>Admin login</td></tr>
+<tr><td>POST</td><td><code>/api/admin/logout</code></td><td>Admin</td><td>Logout</td></tr>
+<tr><td>GET</td><td><code>/api/admin/stats</code></td><td>Admin</td><td>Dashboard counts</td></tr>
+<tr><td>GET</td><td><code>/api/admin/bookings</code></td><td>Admin</td><td>Bookings + approved drivers</td></tr>
+<tr><td>POST</td><td><code>/api/admin/bookings/[id]/assign</code></td><td>Admin</td><td>Assign driver to booking</td></tr>
+<tr><td>GET</td><td><code>/api/admin/drivers</code></td><td>Admin</td><td>Driver list (<code>?status=PENDING</code>)</td></tr>
+<tr><td>POST</td><td><code>/api/admin/drivers/[id]/review</code></td><td>Admin</td><td>Approve/reject driver</td></tr>
+<tr><td>PATCH</td><td><code>/api/admin/drivers/[id]/contact</code></td><td>Admin</td><td>Set driver internal phone</td></tr>
+<tr><td>GET</td><td><code>/api/admin/fleet</code></td><td>Admin</td><td>Live driver locations</td></tr>
+</tbody></table>
+
+<hr />
+
+<h2>Database schema</h2>
+
+<p>PostgreSQL managed by Prisma. Key models:</p>
+
+<table>
+<thead><tr><th>Model</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><code>User</code></td><td>Customers, drivers, admins (role enum)</td></tr>
+<tr><td><code>DriverProfile</code></td><td>Driver status, availability, photos</td></tr>
+<tr><td><code>Vehicle</code></td><td>Driver vehicle details</td></tr>
+<tr><td><code>Booking</code></td><td>Move details, status, pricing</td></tr>
+<tr><td><code>Payment</code></td><td>M-Pesa payment records</td></tr>
+<tr><td><code>ChatMessage</code></td><td>Per-booking chat</td></tr>
+<tr><td><code>LocationUpdate</code></td><td>Driver GPS history</td></tr>
+<tr><td><code>LandingPageContent</code></td><td>CMS JSON for home page</td></tr>
+</tbody></table>
+
+<h3>Booking status flow</h3>
+
+<pre><code>
+DRAFT → PENDING_PAYMENT → PAID → ASSIGNED → EN_ROUTE → LOADING → IN_TRANSIT → DELIVERED
+                                                                              ↘ CANCELLED
+</code></pre>
+
+<p>Driver advances: <strong>Assigned → En route → Loading → In transit → Delivered</strong></p>
+
+<h3>Vehicle types &amp; base prices (KES)</h3>
+
+<table>
+<thead><tr><th>Type</th><th>Base price</th></tr></thead><tbody>
+<tr><td>Van</td><td>3,500</td></tr>
+<tr><td>Pickup</td><td>5,500</td></tr>
+<tr><td>Canter (3-ton)</td><td>9,000</td></tr>
+<tr><td>Lorry (7-ton+)</td><td>15,000</td></tr>
+</tbody></table>
+
+<h3>Cities</h3>
+
+<li><strong>Mombasa</strong> — Mvita, Nyali, Kisauni, Likoni, Changamwe, Jomvu</li>
+<li><strong>Nairobi</strong> — Westlands, Dagoretti, Lang'ata, Kibra, etc.</li>
+
+<hr />
+
+<h2>Authentication &amp; sessions</h2>
+
+<p>All sessions use <strong>httpOnly cookies</strong> signed with <code>ADMIN_SESSION_SECRET</code>.</p>
+
+<table>
+<thead><tr><th>Cookie</th><th>Role</th><th>Max age</th></tr></thead><tbody>
+<tr><td><code>relocate_admin_session</code></td><td>Admin</td><td>8 hours</td></tr>
+<tr><td><code>relocate_customer_session</code></td><td>Customer</td><td>30 days</td></tr>
+<tr><td><code>relocate_driver_session</code></td><td>Driver</td><td>7 days</td></tr>
+<tr><td><code>relocate_booking_{id}</code></td><td>Guest booking access</td><td>90 days</td></tr>
+</tbody></table>
+
+<p><strong>Split deploy rule:</strong> <code>ADMIN_USERNAME</code>, <code>ADMIN_PASSWORD</code>, and <code>ADMIN_SESSION_SECRET</code> must be <strong>identical on Render and Vercel</strong> so login cookies work across the proxy.</p>
+
+<p>Guest booking cookies are set when a booking is created, allowing chat/track/pay without an account.</p>
+
+<hr />
+
+<h2>M-Pesa payments</h2>
+
+<li class="ol">Customer submits booking → status <code>PENDING_PAYMENT</code></li>
+<li class="ol"><code>/book/[id]/pay</code> triggers STK Push via Daraja API</li>
+<li class="ol">Customer enters PIN on phone</li>
+<li class="ol">Safaricom calls <code>MPESA_CALLBACK_URL</code> on <strong>Render</strong></li>
+<li class="ol">Booking status → <code>PAID</code>; customer redirected to chat</li>
+
+<h3>Sandbox testing</h3>
+
+<table>
+<thead><tr><th>Setting</th><th>Value</th></tr></thead><tbody>
+<tr><td><code>MPESA_ENV</code></td><td><code>sandbox</code></td></tr>
+<tr><td>Test phone</td><td><code>254708374149</code></td></tr>
+<tr><td>Test PIN</td><td><code>174379</code></td></tr>
+<tr><td>Shortcode</td><td><code>174379</code></td></tr>
+</tbody></table>
+
+<p>Set <code>SKIP_MPESA_PAYMENT=true</code> to bypass payment during testing (booking goes straight to <code>PAID</code>).</p>
+
+<h3>Production (live money)</h3>
+
+<li class="ol">Complete Safaricom <strong>Go Live</strong> on <a href="https://developer.safaricom.co.ke">Daraja portal</a></li>
+<li class="ol">Set <code>MPESA_ENV=production</code> on <strong>Render</strong></li>
+<li class="ol">Use live shortcode, passkey, consumer key/secret</li>
+<li class="ol">Set <code>MPESA_CALLBACK_URL=https://relocationweb-api.onrender.com/api/mpesa/callback</code></li>
+<li class="ol">Set <code>SKIP_MPESA_PAYMENT=false</code></li>
+
+<hr />
+
+<h2>File uploads</h2>
+
+<table>
+<thead><tr><th>Environment</th><th>Storage</th></tr></thead><tbody>
+<tr><td>Local dev</td><td><code>public/uploads/</code></td></tr>
+<tr><td>Render (with <code>BLOB_READ_WRITE_TOKEN</code>)</td><td>Vercel Blob (public URLs)</td></tr>
+<tr><td>Render (without token)</td><td><code>public/uploads/</code> (ephemeral on Render — use Blob for production)</td></tr>
+</tbody></table>
+
+<p>Allowed: JPG, PNG, WebP, GIF — max 5 MB each.</p>
+
+<p>Used for: driver profile/license photos, vehicle photos, admin hero/gallery images.</p>
+
+<hr />
+
+<h2>Environment variables</h2>
+
+<h3>Render (backend) — required</h3>
+
+<table>
+<thead><tr><th>Variable</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>DATABASE_URL</code></td><td>Neon PostgreSQL connection string</td></tr>
+<tr><td><code>ADMIN_USERNAME</code></td><td>Admin login username</td></tr>
+<tr><td><code>ADMIN_PASSWORD</code></td><td>Admin login password</td></tr>
+<tr><td><code>ADMIN_SESSION_SECRET</code></td><td>Cookie signing secret (32+ chars)</td></tr>
+<tr><td><code>SKIP_MPESA_PAYMENT</code></td><td><code>true</code> to skip M-Pesa in testing</td></tr>
+<tr><td><code>MPESA_ENV</code></td><td><code>sandbox</code> or <code>production</code></td></tr>
+<tr><td><code>MPESA_CONSUMER_KEY</code></td><td>Daraja consumer key</td></tr>
+<tr><td><code>MPESA_CONSUMER_SECRET</code></td><td>Daraja consumer secret</td></tr>
+<tr><td><code>MPESA_SHORTCODE</code></td><td>Paybill/till (174379 sandbox)</td></tr>
+<tr><td><code>MPESA_PASSKEY</code></td><td>Daraja passkey</td></tr>
+<tr><td><code>MPESA_CALLBACK_URL</code></td><td>Render callback URL</td></tr>
+<tr><td><code>MPESA_ACCOUNT_REFERENCE</code></td><td><code>Relocate</code></td></tr>
+<tr><td><code>MPESA_TRANSACTION_DESC</code></td><td><code>Move booking</code></td></tr>
+</tbody></table>
+
+<h3>Vercel (frontend) — required</h3>
+
+<table>
+<thead><tr><th>Variable</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>API_URL</code></td><td>Render backend URL (no trailing slash)</td></tr>
+<tr><td><code>ADMIN_USERNAME</code></td><td>Must match Render</td></tr>
+<tr><td><code>ADMIN_PASSWORD</code></td><td>Must match Render</td></tr>
+<tr><td><code>ADMIN_SESSION_SECRET</code></td><td>Must match Render</td></tr>
+<tr><td><code>SKIP_MPESA_PAYMENT</code></td><td><code>true</code> during testing</td></tr>
+</tbody></table>
+
+<p><strong>Do not set <code>DATABASE_URL</code> on Vercel.</strong></p>
+
+<h3>Optional</h3>
+
+<table>
+<thead><tr><th>Variable</th><th>Where</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>BLOB_READ_WRITE_TOKEN</code></td><td>Render</td><td>Vercel Blob for persistent uploads</td></tr>
+<tr><td><code>NEXT_PUBLIC_MAPBOX_TOKEN</code></td><td>Either</td><td>Map provider (future use)</td></tr>
+</tbody></table>
+
+<hr />
+
+<h2>Deployment</h2>
+
+<p>See also: <a href="./SPLIT-DEPLOY.md">SPLIT-DEPLOY.md</a></p>
+
+<h3>Render (backend)</h3>
+
+<pre><code>
+Build:  npm install &amp;&amp; npx prisma generate &amp;&amp; npx prisma migrate deploy &amp;&amp; npm run build
+Start:  npm start
+Health: /api/health
+</code></pre>
+
+<h3>Vercel (frontend)</h3>
+
+<pre><code>
+Build:  prisma generate &amp;&amp; next build
+Env:    API_URL + admin secrets (no DATABASE_URL)
+</code></pre>
+
+<p>Vercel <code>next.config.ts</code> rewrites <code>/api/:path*</code> → <code>${API_URL}/api/:path*</code>.</p>
+
+<h3>Custom domain</h3>
+
+<li class="ol">Add domain in <strong>Vercel</strong> → Settings → Domains (website)</li>
+<li class="ol">Keep M-Pesa callback on <strong>Render</strong> URL (or proxy if using same domain)</li>
+
+<hr />
+
+<h2>Local development</h2>
+
+<pre><code>
+cd C:\Users\ADMIN\Projects\relocate
+npm install
+</code></pre>
+
+<p>Create <code>.env</code> from <code>.env.example</code>. For local DB use Neon URL or PostgreSQL:</p>
+
+<pre><code>
+DATABASE_URL=&quot;postgresql://...&quot;
+# Do not set API_URL locally
+</code></pre>
+
+<pre><code>
+npm run db:deploy
+npm run dev
+</code></pre>
+
+<p>Open <a href="http://localhost:3000">http://localhost:3000</a></p>
+
+<h3>Useful scripts</h3>
+
+<table>
+<thead><tr><th>Command</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>npm run dev</code></td><td>Start dev server</td></tr>
+<tr><td><code>npm run build</code></td><td>Production build</td></tr>
+<tr><td><code>npm run db:migrate</code></td><td>Create migration (dev)</td></tr>
+<tr><td><code>npm run db:deploy</code></td><td>Apply migrations (prod/local)</td></tr>
+<tr><td><code>npm run db:studio</code></td><td>Prisma Studio GUI</td></tr>
+</tbody></table>
+
+<hr />
+
+<h2>Project structure</h2>
+
+<pre><code>
+relocate/
+├── prisma/
+│   ├── schema.prisma          # Database models
+│   └── migrations/            # PostgreSQL migrations
+├── public/uploads/            # Local image uploads
+├── src/
+│   ├── app/
+│   │   ├── api/               # Backend API routes
+│   │   ├── admin/             # Admin dashboard pages
+│   │   ├── account/           # Customer account
+│   │   ├── book/              # Booking flow
+│   │   ├── driver/            # Driver portal
+│   │   ├── login/ register/   # Auth pages
+│   │   └── page.tsx           # Landing page
+│   ├── components/            # React UI components
+│   └── lib/
+│       ├── admin-auth.ts      # Admin session
+│       ├── customer-auth.ts   # Customer session
+│       ├── driver-auth.ts     # Driver session
+│       ├── booking-access.ts  # Guest booking cookies
+│       ├── mpesa.ts           # Daraja API
+│       ├── prisma.ts          # Database client
+│       ├── uploads.ts         # Image upload handler
+│       ├── api-server.ts      # Server-side API fetch (split deploy)
+│       └── api-url.ts         # API_URL helper
+├── render.yaml                # Render deploy blueprint
+├── vercel.json                # Vercel build config
+├── SPLIT-DEPLOY.md            # Deploy walkthrough
+└── SYSTEM.md                  # This document
+</code></pre>
+
+<hr />
+
+<h2>Troubleshooting</h2>
+
+<table>
+<thead><tr><th>Problem</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody>
+<tr><td>GitHub shows README only</td><td>GitHub is code storage</td><td>Use <strong>Vercel URL</strong> for the website</td></tr>
+<tr><td><code>/api/health</code> fails on Render</td><td>Build failed or service sleeping</td><td>Check Render logs; wait 30–60s on free tier</td></tr>
+<tr><td>Admin login fails on Vercel</td><td>Secrets don't match Render</td><td>Sync <code>ADMIN_PASSWORD</code> and <code>ADMIN_SESSION_SECRET</code></td></tr>
+<tr><td><code>Failed to parse URL from /api/...</code></td><td>Server fetch without origin</td><td>Fixed in latest code; redeploy Render</td></tr>
+<tr><td>M-Pesa STK push fails</td><td>Wrong keys or callback URL</td><td>Check Daraja credentials; callback must be Render HTTPS URL</td></tr>
+<tr><td>Image upload fails on Render</td><td>No persistent disk</td><td>Add <code>BLOB_READ_WRITE_TOKEN</code> on Render</td></tr>
+<tr><td>First request very slow</td><td>Render/Neon free tier cold start</td><td>Normal; upgrade plan for always-on</td></tr>
+<tr><td>Booking chat &quot;forbidden&quot;</td><td>No guest cookie or not paid</td><td>Complete payment first; cookies must match domain</td></tr>
+<tr><td>Build fails on Vercel with Prisma</td><td><code>DATABASE_URL</code> set on Vercel</td><td>Remove <code>DATABASE_URL</code> from Vercel env</td></tr>
+</tbody></table>
+
+<hr />
+
+<h2>Security checklist (before public launch)</h2>
+
+<p class="check">☐ Change <code>ADMIN_PASSWORD</code> from default/example</p>
+<p class="check">☐ Use a long random <code>ADMIN_SESSION_SECRET</code></p>
+<p class="check">☐ Set real M-Pesa credentials and <code>SKIP_MPESA_PAYMENT=false</code></p>
+<p class="check">☐ Do not commit <code>.env</code> to GitHub</p>
+<p class="check">☐ Review approved drivers before they receive jobs</p>
+<p class="check">☐ Consider custom domain + HTTPS on Vercel</p>
+
+<hr />
+
+<p>*Last updated: July 2026 — Relocate v0.1.0*</p>
+
+  <p class="footer-note">Generated from SYSTEM.md — Relocate project documentation</p>
+</body>
+</html>
