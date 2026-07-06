@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { LandingImpactSection } from "@/components/landing-impact-section";
 import { VehicleCard } from "@/components/vehicle-card";
 import type { LandingContent } from "@/lib/landing-content";
 import { VEHICLE_OPTIONS } from "@/lib/vehicles";
@@ -67,6 +68,8 @@ export function LandingPageView({ content }: LandingPageViewProps) {
           </div>
         </div>
       </section>
+
+      <LandingImpactSection content={content} />
 
       {content.galleryImages.length > 0 ? (
         <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">

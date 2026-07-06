@@ -66,6 +66,28 @@ export function LandingContentEditor() {
     }));
   }
 
+  function updateImpactStat(index: number, field: "value" | "label" | "icon", value: string) {
+    setContent((current) => {
+      const stats = [...current.impactStats];
+      stats[index] = { ...stats[index], [field]: value };
+      return { ...current, impactStats: stats };
+    });
+  }
+
+  function addImpactStat() {
+    setContent((current) => ({
+      ...current,
+      impactStats: [...current.impactStats, { value: "", label: "", icon: "⭐" }],
+    }));
+  }
+
+  function removeImpactStat(index: number) {
+    setContent((current) => ({
+      ...current,
+      impactStats: current.impactStats.filter((_, statIndex) => statIndex !== index),
+    }));
+  }
+
   async function uploadImage(
     file: File,
     onUploaded: (url: string) => void,
@@ -240,6 +262,85 @@ export function LandingContentEditor() {
           >
             Add step
           </button>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-slate-900">Impact stats section</h2>
+        <p className="mt-2 text-sm text-slate-500">
+          Highlight your history and key numbers. The founded year appears as a featured card plus
+          in the section header.
+        </p>
+        <div className="mt-4 grid gap-4">
+          <TextField
+            label="Section title"
+            value={content.impactSectionTitle}
+            onChange={(value) => setContent({ ...content, impactSectionTitle: value })}
+          />
+          <TextArea
+            label="Section description"
+            value={content.impactSectionDescription}
+            onChange={(value) =>
+              setContent({ ...content, impactSectionDescription: value })
+            }
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <TextField
+              label="Founded year"
+              value={content.foundedYear}
+              onChange={(value) => setContent({ ...content, foundedYear: value })}
+            />
+            <TextField
+              label="Founded label"
+              value={content.foundedLabel}
+              onChange={(value) => setContent({ ...content, foundedLabel: value })}
+            />
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-sm font-medium text-slate-700">Stat cards</p>
+            {content.impactStats.map((stat, index) => (
+              <div
+                key={index}
+                className="grid gap-3 rounded-2xl border border-slate-200 p-4 sm:grid-cols-[80px_1fr_1fr_auto]"
+              >
+                <label className="block text-sm font-medium text-slate-700">
+                  Icon
+                  <input
+                    type="text"
+                    value={stat.icon}
+                    onChange={(event) => updateImpactStat(index, "icon", event.target.value)}
+                    placeholder="🚚"
+                    className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-center text-xl"
+                  />
+                </label>
+                <TextField
+                  label="Number"
+                  value={stat.value}
+                  onChange={(value) => updateImpactStat(index, "value", value)}
+                />
+                <TextField
+                  label="Label"
+                  value={stat.label}
+                  onChange={(value) => updateImpactStat(index, "label", value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeImpactStat(index)}
+                  className="self-end rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-600"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addImpactStat}
+              className="rounded-xl border border-dashed border-slate-300 px-4 py-3 text-sm font-medium text-teal-700"
+            >
+              Add stat card
+            </button>
+          </div>
         </div>
       </section>
 
