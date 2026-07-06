@@ -3,6 +3,8 @@ import { getCustomerUser } from "@/lib/customer-auth";
 
 const navLinks = [
   { href: "/book", label: "Book a move" },
+  { href: "/about", label: "About us" },
+  { href: "/contact", label: "Contact" },
   { href: "/driver/register", label: "Become a driver" },
   { href: "/admin", label: "Admin" },
 ];
