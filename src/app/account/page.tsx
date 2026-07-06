@@ -1,4 +1,6 @@
 import { AccountBookings } from "@/components/account-bookings";
+import { CustomerPageShell } from "@/components/customer-page-shell";
+import { MotionFadeUp } from "@/components/motion-section";
 import { fetchApi } from "@/lib/api-server";
 
 export default async function AccountPage() {
@@ -16,20 +18,24 @@ export default async function AccountPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-bold text-slate-900">My account</h1>
-      <p className="mt-3 text-slate-600">
-        Track your moves, open chat, and follow your driver live.
-      </p>
-
-      <div className="mt-8">
+    <CustomerPageShell
+      eyebrow="Your dashboard"
+      title="My account"
+      description="Track your moves, open chat, and follow your driver live — all from one place."
+      badges={[
+        { icon: "🚚", text: `${data.bookings.length} booking${data.bookings.length === 1 ? "" : "s"}` },
+        { icon: "💬", text: "Chat & track" },
+      ]}
+      maxWidth="4xl"
+    >
+      <MotionFadeUp delay={250}>
         <AccountBookings
           fullName={data.user.fullName}
           email={data.user.email}
           phone={data.user.phone}
           bookings={data.bookings}
         />
-      </div>
-    </div>
+      </MotionFadeUp>
+    </CustomerPageShell>
   );
 }

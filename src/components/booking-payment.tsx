@@ -166,8 +166,13 @@ export function BookingPayment({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">Booking summary</h2>
+      <div className="motion-card rounded-3xl border border-teal-100 bg-gradient-to-br from-teal-50/80 to-white p-6 shadow-lg shadow-teal-900/5">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-teal-600 to-cyan-600 text-lg shadow-md">
+            📋
+          </span>
+          <h2 className="text-lg font-semibold text-teal-900">Booking summary</h2>
+        </div>
         <dl className="mt-4 space-y-3 text-sm text-slate-600">
           <div>
             <dt className="font-medium text-slate-800">Customer</dt>
@@ -193,8 +198,8 @@ export function BookingPayment({
             <dt className="font-medium text-slate-800">To</dt>
             <dd>{dropoffSummary}</dd>
           </div>
-          <div className="border-t border-slate-200 pt-3">
-            <dt className="font-medium text-slate-800">Amount due</dt>
+          <div className="rounded-2xl border border-teal-200 bg-gradient-to-r from-teal-100 to-cyan-100 px-4 py-3">
+            <dt className="font-medium text-teal-900">Amount due</dt>
             <dd className="text-2xl font-bold text-teal-800">
               KES {amount.toLocaleString()}
             </dd>
@@ -203,12 +208,14 @@ export function BookingPayment({
       </div>
 
       <div
-        className={`rounded-2xl px-4 py-3 text-sm ${
+        className={`rounded-2xl border px-4 py-3 text-sm ${
           status === "completed"
-            ? "bg-teal-50 text-teal-900"
+            ? "border-teal-200 bg-gradient-to-r from-teal-50 to-cyan-50 text-teal-900"
             : status === "failed" || status === "config_error"
-              ? "bg-red-50 text-red-700"
-              : "bg-slate-100 text-slate-700"
+              ? "border-red-200 bg-red-50 text-red-700"
+              : status === "waiting"
+                ? "border-amber-200 bg-amber-50 text-amber-900"
+                : "border-teal-100 bg-teal-50/50 text-slate-700"
         }`}
       >
         {message}
@@ -219,13 +226,13 @@ export function BookingPayment({
           <button
             type="button"
             onClick={() => router.push(`/book/${bookingId}/chat`)}
-            className="rounded-full bg-teal-700 px-6 py-3 text-sm font-semibold text-white hover:bg-teal-800"
+            className="motion-button rounded-full bg-gradient-to-r from-teal-700 to-cyan-700 px-6 py-3 text-sm font-semibold text-white shadow-md hover:from-teal-800 hover:to-cyan-800"
           >
-            Continue to chat
+            Continue to chat →
           </button>
           <Link
             href="/book"
-            className="rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            className="rounded-full border border-teal-200 bg-white px-6 py-3 text-sm font-semibold text-teal-800 hover:bg-teal-50"
           >
             Book another move
           </Link>
@@ -236,7 +243,7 @@ export function BookingPayment({
             type="button"
             onClick={handlePay}
             disabled={status === "pushing" || status === "waiting" || status === "config_error"}
-            className="rounded-full bg-teal-700 px-6 py-3 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-60"
+            className="motion-button rounded-full bg-gradient-to-r from-teal-700 to-cyan-700 px-6 py-3 text-sm font-semibold text-white shadow-md hover:from-teal-800 hover:to-cyan-800 disabled:opacity-60"
           >
             {status === "pushing"
               ? "Sending prompt..."

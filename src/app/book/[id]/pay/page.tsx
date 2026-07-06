@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { BookingPayment } from "@/components/booking-payment";
+import { CustomerPageShell } from "@/components/customer-page-shell";
+import { MotionFadeUp } from "@/components/motion-section";
 import { fetchApi } from "@/lib/api-server";
 import { VEHICLE_OPTIONS } from "@/lib/vehicles";
 
@@ -43,21 +45,31 @@ export default async function BookingPayPage({
 
   if (booking.status === "PAID" || booking.paymentStatus === "COMPLETED") {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-        <div className="rounded-2xl border border-teal-200 bg-teal-50 p-6">
-          <h1 className="text-2xl font-bold text-teal-900">Payment complete</h1>
-          <p className="mt-2 text-teal-800">
+      <CustomerPageShell
+        eyebrow="Payment"
+        title="Payment complete"
+        description="Your move is confirmed. Head to chat to coordinate with your driver."
+        backHref="/book"
+        backLabel="Back to booking"
+        badges={[
+          { icon: "✅", text: "Paid" },
+          { icon: "💬", text: "Chat ready" },
+        ]}
+        maxWidth="2xl"
+      >
+        <div className="motion-card rounded-3xl border border-teal-200 bg-gradient-to-br from-teal-50 to-white p-8 shadow-lg shadow-teal-900/5">
+          <p className="text-teal-800">
             This booking is already paid
             {booking.mpesaReceipt ? ` (Receipt: ${booking.mpesaReceipt})` : "."}
           </p>
           <Link
             href={`/book/${booking.id}/chat`}
-            className="mt-6 inline-block rounded-full bg-teal-700 px-6 py-3 text-sm font-semibold text-white hover:bg-teal-800"
+            className="motion-button mt-6 inline-block rounded-full bg-gradient-to-r from-teal-700 to-cyan-700 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-900/20 hover:from-teal-800 hover:to-cyan-800"
           >
-            Continue to chat
+            Continue to chat →
           </Link>
         </div>
-      </div>
+      </CustomerPageShell>
     );
   }
 
@@ -68,18 +80,19 @@ export default async function BookingPayPage({
     booking.vehicleType;
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-      <Link href="/book" className="text-sm font-medium text-teal-700 hover:underline">
-        ← Back to booking
-      </Link>
-
-      <h1 className="mt-4 text-3xl font-bold text-slate-900">Pay with M-Pesa</h1>
-      <p className="mt-3 text-slate-600">
-        Complete payment to confirm your move. You will receive a prompt on{" "}
-        {booking.contactPhone}.
-      </p>
-
-      <div className="mt-8">
+    <CustomerPageShell
+      eyebrow="Secure checkout"
+      title="Pay with M-Pesa"
+      description={`Complete payment to confirm your move. You will receive a prompt on ${booking.contactPhone}.`}
+      backHref="/book"
+      backLabel="Back to booking"
+      badges={[
+        { icon: "💳", text: "M-Pesa STK push" },
+        { icon: "🔒", text: "Secure payment" },
+      ]}
+      maxWidth="2xl"
+    >
+      <MotionFadeUp delay={250}>
         <BookingPayment
           bookingId={booking.id}
           contactName={booking.contactName}
@@ -97,7 +110,7 @@ export default async function BookingPayPage({
           mpesaConfigured={data.mpesaConfigured}
           isSandbox={data.isSandbox}
         />
-      </div>
-    </div>
+      </MotionFadeUp>
+    </CustomerPageShell>
   );
 }

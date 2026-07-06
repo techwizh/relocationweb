@@ -73,16 +73,16 @@ export function BookingChat({ bookingId, role, senderName }: BookingChatProps) {
   }
 
   return (
-    <div className="flex h-[32rem] flex-col rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 px-4 py-3">
-        <h2 className="font-semibold text-slate-900">Move chat</h2>
-        <p className="text-xs text-slate-500">
+    <div className="motion-card flex h-[32rem] flex-col overflow-hidden rounded-3xl border border-teal-100 bg-white shadow-lg shadow-teal-900/5">
+      <div className="border-b border-teal-100 bg-gradient-to-r from-teal-700 to-cyan-700 px-4 py-4 text-white">
+        <h2 className="font-semibold">Move chat</h2>
+        <p className="text-xs text-teal-100">
           Phone numbers, digit-by-digit messages, and number words (e.g. &quot;seven&quot;)
           are blocked to keep communication on Relocate.
         </p>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+      <div className="flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-teal-50/30 to-white px-4 py-4">
         {messages.length === 0 ? (
           <p className="text-sm text-slate-500">
             No messages yet. Ask about access, parking, or loading details.
@@ -94,10 +94,10 @@ export function BookingChat({ bookingId, role, senderName }: BookingChatProps) {
             return (
               <article
                 key={message.id}
-                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
+                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
                   isMine
-                    ? "ml-auto bg-teal-700 text-white"
-                    : "bg-slate-100 text-slate-800"
+                    ? "ml-auto bg-gradient-to-br from-teal-600 to-cyan-600 text-white"
+                    : "border border-teal-100 bg-white text-slate-800"
                 }`}
               >
                 <p className="mb-1 text-xs font-semibold opacity-80">
@@ -110,7 +110,7 @@ export function BookingChat({ bookingId, role, senderName }: BookingChatProps) {
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="border-t border-slate-200 p-4">
+      <form onSubmit={handleSubmit} className="border-t border-teal-100 bg-teal-50/50 p-4">
         {error ? (
           <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
@@ -122,12 +122,12 @@ export function BookingChat({ bookingId, role, senderName }: BookingChatProps) {
             value={body}
             onChange={(event) => setBody(event.target.value)}
             placeholder="Type your message..."
-            className="flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none ring-teal-700 focus:ring-2"
+            className="flex-1 rounded-xl border border-teal-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
           />
           <button
             type="submit"
             disabled={isSending}
-            className="rounded-xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-60"
+            className="motion-button rounded-xl bg-gradient-to-r from-teal-700 to-cyan-700 px-4 py-3 text-sm font-semibold text-white shadow-md hover:from-teal-800 hover:to-cyan-800 disabled:opacity-60"
           >
             Send
           </button>

@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { isValidKenyanPhone, normalizeKenyanPhone } from "@/lib/phone";
 
+const inputClassName =
+  "mt-2 w-full rounded-xl border border-teal-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200";
+
 export function RegisterForm() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
@@ -56,7 +59,7 @@ export function RegisterForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-8 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      className="motion-card space-y-4 rounded-3xl border border-teal-100 bg-gradient-to-br from-teal-50/80 to-white p-6 shadow-lg shadow-teal-900/5"
     >
       <label className="block text-sm font-medium text-slate-700">
         Full name
@@ -65,7 +68,7 @@ export function RegisterForm() {
           value={fullName}
           onChange={(event) => setFullName(event.target.value)}
           required
-          className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+          className={inputClassName}
         />
       </label>
       <label className="block text-sm font-medium text-slate-700">
@@ -75,7 +78,7 @@ export function RegisterForm() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           required
-          className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+          className={inputClassName}
         />
       </label>
       <label className="block text-sm font-medium text-slate-700">
@@ -86,7 +89,7 @@ export function RegisterForm() {
           onChange={(event) => setPhone(event.target.value)}
           placeholder="0712345678"
           required
-          className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+          className={inputClassName}
         />
       </label>
       <p className="text-xs text-slate-500">
@@ -101,7 +104,7 @@ export function RegisterForm() {
           onChange={(event) => setPassword(event.target.value)}
           minLength={8}
           required
-          className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none ring-teal-700 focus:ring-2"
+          className={inputClassName}
         />
       </label>
 
@@ -112,12 +115,12 @@ export function RegisterForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-full bg-teal-700 px-6 py-3 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-60"
+        className="motion-button w-full rounded-full bg-gradient-to-r from-teal-700 to-cyan-700 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-900/20 hover:from-teal-800 hover:to-cyan-800 disabled:opacity-60"
       >
         {isSubmitting ? "Creating account..." : "Create account"}
       </button>
 
-      <p className="text-sm text-slate-500">
+      <p className="text-center text-sm text-slate-500">
         Already have an account?{" "}
         <Link href="/login?type=customer" className="font-medium text-teal-700 hover:underline">
           Sign in

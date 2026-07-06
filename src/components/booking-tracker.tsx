@@ -87,33 +87,43 @@ export function BookingTracker({ bookingId }: BookingTrackerProps) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
-        <p>
-          <span className="font-medium text-slate-800">Status:</span>{" "}
-          {data.statusLabel}
-        </p>
-        {data.driverName ? (
-          <p className="mt-1">
-            <span className="font-medium text-slate-800">Driver:</span>{" "}
-            {data.driverName}
+      <div className="motion-card rounded-3xl border border-teal-100 bg-gradient-to-br from-teal-50/80 to-white p-5 shadow-lg shadow-teal-900/5">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-cyan-600 to-teal-600 text-lg text-white shadow-md">
+            📡
+          </span>
+          <h3 className="font-semibold text-teal-900">Live status</h3>
+        </div>
+        <div className="mt-3 space-y-1 text-sm text-slate-600">
+          <p>
+            <span className="font-semibold text-teal-800">Status:</span>{" "}
+            <span className="rounded-full bg-teal-100 px-2 py-0.5 text-xs font-semibold text-teal-800">
+              {data.statusLabel}
+            </span>
           </p>
-        ) : null}
-        {data.pickupSummary ? (
-          <p className="mt-1">
-            <span className="font-medium text-slate-800">From:</span>{" "}
-            {data.pickupSummary}
-          </p>
-        ) : null}
-        {data.dropoffSummary ? (
-          <p className="mt-1">
-            <span className="font-medium text-slate-800">To:</span>{" "}
-            {data.dropoffSummary}
-          </p>
-        ) : null}
+          {data.driverName ? (
+            <p>
+              <span className="font-semibold text-teal-800">Driver:</span>{" "}
+              {data.driverName}
+            </p>
+          ) : null}
+          {data.pickupSummary ? (
+            <p>
+              <span className="font-semibold text-teal-800">From:</span>{" "}
+              {data.pickupSummary}
+            </p>
+          ) : null}
+          {data.dropoffSummary ? (
+            <p>
+              <span className="font-semibold text-teal-800">To:</span>{" "}
+              {data.dropoffSummary}
+            </p>
+          ) : null}
+        </div>
       </div>
 
       {!data.trackingAvailable ? (
-        <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           {data.message ?? "Tracking is not available yet."}
         </p>
       ) : null}
@@ -134,13 +144,13 @@ export function BookingTracker({ bookingId }: BookingTrackerProps) {
       ) : null}
 
       {data.trackingAvailable && !data.location ? (
-        <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+        <p className="rounded-2xl border border-teal-100 bg-teal-50/50 px-4 py-3 text-sm text-slate-600">
           {data.message ?? "Waiting for driver location..."}
         </p>
       ) : null}
 
       {data.status === "DELIVERED" ? (
-        <p className="rounded-xl bg-teal-50 px-4 py-3 text-sm text-teal-800">
+        <p className="rounded-2xl border border-teal-200 bg-gradient-to-r from-teal-50 to-cyan-50 px-4 py-3 text-sm text-teal-800">
           This move has been marked as delivered.
         </p>
       ) : null}
