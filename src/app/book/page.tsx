@@ -3,8 +3,19 @@ import { BookingForm } from "@/components/booking-form";
 import { getCustomerUser } from "@/lib/customer-auth";
 import { isMpesaPaymentSkipped, isMpesaSandbox } from "@/lib/payment-config";
 import { isMpesaConfigured } from "@/lib/mpesa";
+import { VEHICLE_OPTIONS, type VehicleTypeId } from "@/lib/vehicles";
 
-export default async function BookPage() {
+function resolveInitialVehicle(vehicleParam?: string): VehicleTypeId | undefined {
+  if (!vehicleParam) return undefined;
+  return VEHICLE_OPTIONS.find((vehicle) => vehicle.id === vehicleParam)?.id;
+}
+
+export default async function BookPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ vehicle?: string }>;
+}) {
+  const { vehicle: vehicleParam } = await searchParams;
   const skipPayment = isMpesaPaymentSkipped();
   const isSandbox = isMpesaSandbox();
   const mpesaConfigured = isMpesaConfigured();
@@ -53,6 +64,7 @@ export default async function BookPage() {
         isSandbox={isSandbox}
         initialContactName={customer?.fullName ?? ""}
         initialContactPhone={customer?.phone ?? ""}
+        initialVehicleType={resolveInitialVehicle(vehicleParam)}
       />
 
       <p className="mt-6 text-sm text-slate-500">

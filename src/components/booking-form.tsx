@@ -14,11 +14,13 @@ export function BookingForm({
   isSandbox = true,
   initialContactName = "",
   initialContactPhone = "",
+  initialVehicleType,
 }: {
   skipPayment?: boolean;
   isSandbox?: boolean;
   initialContactName?: string;
   initialContactPhone?: string;
+  initialVehicleType?: VehicleTypeId;
 }) {
   const router = useRouter();
   const [cityId, setCityId] = useState<CityId>("mombasa");
@@ -31,7 +33,9 @@ export function BookingForm({
   const [dropoffWard, setDropoffWard] = useState("");
   const [dropoffLandmark, setDropoffLandmark] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
-  const [vehicleType, setVehicleType] = useState(VEHICLE_OPTIONS[0].id);
+  const [vehicleType, setVehicleType] = useState<VehicleTypeId>(
+    initialVehicleType ?? VEHICLE_OPTIONS[0].id,
+  );
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

@@ -96,17 +96,24 @@ export function LandingPageView({ content }: LandingPageViewProps) {
         </section>
       ) : null}
 
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <div className="mb-8 max-w-2xl">
-          <h2 className="text-3xl font-bold text-slate-900">
-            {content.vehiclesSectionTitle}
-          </h2>
-          <p className="mt-3 text-slate-600">{content.vehiclesSectionDescription}</p>
-        </div>
-        <div className="grid gap-6 md:grid-cols-2">
-          {VEHICLE_OPTIONS.map((vehicle) => (
-            <VehicleCard key={vehicle.id} vehicle={vehicle} />
-          ))}
+      <section className="bg-gradient-to-b from-amber-50 via-white to-teal-50 px-4 py-20 sm:px-6">
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto mb-10 max-w-2xl text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal-600">
+              Our fleet
+            </p>
+            <h2 className="mt-3 text-3xl font-bold text-slate-900 sm:text-4xl">
+              {content.vehiclesSectionTitle}
+            </h2>
+            <p className="mt-4 text-base leading-7 text-slate-600">
+              {content.vehiclesSectionDescription}
+            </p>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            {VEHICLE_OPTIONS.map((vehicle) => (
+              <VehicleCard key={vehicle.id} vehicle={vehicle} />
+            ))}
+          </div>
         </div>
       </section>
     </div>
