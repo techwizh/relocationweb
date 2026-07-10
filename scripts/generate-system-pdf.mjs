@@ -125,7 +125,8 @@ const html = `<!DOCTYPE html>
       padding: 0;
     }
     h1 { font-size: 22pt; color: #0f766e; border-bottom: 3px solid #14b8a6; padding-bottom: 8px; margin-top: 0; page-break-after: avoid; }
-    h2 { font-size: 14pt; color: #0f766e; margin-top: 22px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; page-break-after: avoid; }
+    h2 { font-size: 14pt; color: #0f766e; margin-top: 22px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; page-break-after: avoid; page-break-before: always; }
+    h2:first-of-type { page-break-before: avoid; }
     h3 { font-size: 11.5pt; color: #334155; margin-top: 16px; page-break-after: avoid; }
     p, li { margin: 6px 0; }
     li { margin-left: 18px; }
@@ -149,9 +150,20 @@ const html = `<!DOCTYPE html>
   <div class="cover">
     <h1>Relocate</h1>
     <p><strong>Full System Documentation</strong></p>
+    <p>Presentation &amp; Technical Reference</p>
     <p>Moving &amp; relocation platform — Mombasa &amp; Nairobi, Kenya</p>
+    <p>M-Pesa payments · Driver portal · Live GPS · Admin dashboard</p>
     <p>Version 0.1.0 · July 2026</p>
-    <p>techwizh/relocationweb</p>
+    <p>github.com/techwizh/relocationweb</p>
+  </div>
+  <div class="cover" style="padding-top:20px">
+    <h2 style="border:none;page-break-before:avoid;font-size:16pt">Executive summary</h2>
+    <p><strong>Relocate</strong> is a web platform for booking moving vehicles in Kenya.</p>
+    <p>Customers book online, pay via M-Pesa, chat with drivers, and track moves live.</p>
+    <p>Drivers register, get approved by admin, receive jobs, and share GPS.</p>
+    <p>Admins manage the landing page, approve drivers, assign bookings, and monitor fleet.</p>
+    <p><strong>Live stack:</strong> Vercel (frontend) + Render (backend API) + Neon (PostgreSQL)</p>
+    <p><strong>Website:</strong> Vercel URL &nbsp;|&nbsp; <strong>API:</strong> relocationweb-api.onrender.com</p>
   </div>
   ${body}
   <p class="footer-note">Generated from SYSTEM.md — Relocate project documentation</p>
